@@ -1,0 +1,67 @@
+{
+  "title": "GeoMotion",
+  "config": {
+    "step": {
+      "user": {
+        "title": "GeoMotion",
+        "description": "Choose the first person or device tracker to monitor for GPS movement.",
+        "data": {
+          "source_entity": "Person or device tracker",
+          "history_window": "History window (seconds)",
+          "comparison_age": "Preferred comparison age (seconds)",
+          "min_reference_age": "Minimum reference age (seconds)",
+          "min_distance_m": "Minimum movement distance (metres)",
+          "default_accuracy": "Fallback GPS accuracy (metres)",
+          "stationary_timeout": "Moving-to-stationary hold time (seconds)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "GeoMotion is already configured."
+    }
+  },
+  "config_subentries": {
+    "tracked_entity": {
+      "entry_type": "Tracked person or device",
+      "initiate_flow": "Add tracked person or device",
+      "title": "Tracked person or device",
+      "step": {
+        "user": {
+          "title": "Add tracked person or device",
+          "description": "Choose a person or device tracker and configure GPS movement detection.",
+          "data": {
+            "source_entity": "Person or device tracker",
+            "history_window": "History window (seconds)",
+            "comparison_age": "Preferred comparison age (seconds)",
+            "min_reference_age": "Minimum reference age (seconds)",
+            "min_distance_m": "Minimum movement distance (metres)",
+            "default_accuracy": "Fallback GPS accuracy (metres)",
+            "stationary_timeout": "Moving-to-stationary hold time (seconds)"
+          }
+        },
+        "reconfigure": {
+          "title": "Configure {source}",
+          "description": "Adjust GPS movement settings for {source}.",
+          "data": {
+            "history_window": "History window (seconds)",
+            "comparison_age": "Preferred comparison age (seconds)",
+            "min_reference_age": "Minimum reference age (seconds)",
+            "min_distance_m": "Minimum movement distance (metres)",
+            "default_accuracy": "Fallback GPS accuracy (metres)",
+            "stationary_timeout": "Moving-to-stationary hold time (seconds)"
+          }
+        }
+      },
+      "abort": {
+        "already_configured": "This person or device tracker is already configured."
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "moving": {
+        "name": "Moving"
+      }
+    }
+  }
+}

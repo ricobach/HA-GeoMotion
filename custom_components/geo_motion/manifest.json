@@ -1,0 +1,13 @@
+{
+  "domain": "geo_motion",
+  "name": "GeoMotion",
+  "after_dependencies": ["recorder"],
+  "codeowners": ["@ricobach"],
+  "config_flow": true,
+  "documentation": "https://github.com/ricobach/HA-GeoMotion",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/ricobach/HA-GeoMotion/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
