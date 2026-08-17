@@ -75,11 +75,12 @@ class GPSHistory:
 
     def evaluate(self, *, now: datetime | None = None) -> MovementEvaluation:
         if not self.samples:
-            return self._result(None, "insufficient_history")
+            return self._hold_or_unknown("insufficient_history")
+
         now = now or self.samples[-1].timestamp
         self.prune(now)
         if not self.samples:
-            return self._result(None, "stale_history")
+            return self._hold_or_unknown("stale_history")
 
         current = self.samples[-1]
         candidates = []
@@ -91,13 +92,10 @@ class GPSHistory:
                 candidates.append((age, sample))
 
         if not candidates:
-            if self.last_reliable_state is not None:
-                return self._result(
-                    self.last_reliable_state,
-                    "holding_previous_state",
-                    current=current,
-                )
-            return self._result(None, "insufficient_history", current=current)
+            return self._hold_or_unknown(
+                "insufficient_history",
+                current=current,
+            )
 
         reference_age, reference = min(
             candidates, key=lambda item: abs(item[0] - self.comparison_age)
@@ -109,8 +107,7 @@ class GPSHistory:
             reference.longitude,
         )
         if displacement is None:
-            return self._result(
-                None,
+            return self._hold_or_unknown(
                 "distance_unavailable",
                 current=current,
                 reference=reference,
@@ -151,6 +148,41 @@ class GPSHistory:
             reference_age=reference_age,
             displacement=displacement,
             threshold=threshold,
+        )
+
+    def _hold_or_unknown(
+        self,
+        reason: str,
+        *,
+        current: GPSSample | None = None,
+        reference: GPSSample | None = None,
+        reference_age: float | None = None,
+    ) -> MovementEvaluation:
+        """Hold a reliable state through temporary data gaps.
+
+        Unknown is only used until GeoMotion has made its first reliable movement
+        decision. Once a reliable state exists, temporary GPS/history problems keep
+        that state while the reason explains why a fresh decision was not possible.
+        """
+        if self.last_reliable_state is None:
+            return self._result(
+                None,
+                reason,
+                current=current,
+                reference=reference,
+                reference_age=reference_age,
+            )
+
+        held_reason = {
+            "stale_history": "holding_stale_state",
+            "distance_unavailable": "distance_unavailable_holding_state",
+        }.get(reason, "holding_previous_state")
+        return self._result(
+            self.last_reliable_state,
+            held_reason,
+            current=current,
+            reference=reference,
+            reference_age=reference_age,
         )
 
     def _result(
