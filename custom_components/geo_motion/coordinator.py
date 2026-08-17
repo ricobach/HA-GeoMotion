@@ -38,6 +38,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def sample_from_state(state: State) -> GPSSample | None:
+    """Convert a Home Assistant state into a GPS sample."""
     latitude = state.attributes.get(ATTR_LATITUDE)
     longitude = state.attributes.get(ATTR_LONGITUDE)
     if latitude is None or longitude is None:
@@ -71,22 +72,39 @@ class MovementCoordinator(DataUpdateCoordinator[dict[str, MovementEvaluation]]):
         self.entry = entry
         self.histories: dict[str, GPSHistory] = {}
         self._last_publish = 0.0
-        self._max_history_window = DEFAULT_HISTORY_WINDOW
+
+        settings = entry.options
+        history_window = int(
+            settings.get(CONF_HISTORY_WINDOW, DEFAULT_HISTORY_WINDOW)
+        )
+        comparison_age = int(
+            settings.get(CONF_COMPARISON_AGE, DEFAULT_COMPARISON_AGE)
+        )
+        min_reference_age = int(
+            settings.get(CONF_MIN_REFERENCE_AGE, DEFAULT_MIN_REFERENCE_AGE)
+        )
+        min_distance_m = float(
+            settings.get(CONF_MIN_DISTANCE_M, DEFAULT_MIN_DISTANCE_M)
+        )
+        default_accuracy = float(
+            settings.get(CONF_DEFAULT_ACCURACY, DEFAULT_DEFAULT_ACCURACY)
+        )
+        stationary_timeout = int(
+            settings.get(CONF_STATIONARY_TIMEOUT, DEFAULT_STATIONARY_TIMEOUT)
+        )
+        self._max_history_window = history_window
 
         for subentry in entry.subentries.values():
             if subentry.subentry_type != SUBENTRY_TYPE_TRACKED_ENTITY:
                 continue
-            data = subentry.data
-            source = data[CONF_SOURCE_ENTITY]
-            window = int(data.get(CONF_HISTORY_WINDOW, DEFAULT_HISTORY_WINDOW))
-            self._max_history_window = max(self._max_history_window, window)
+            source = subentry.data[CONF_SOURCE_ENTITY]
             self.histories[source] = GPSHistory(
-                window,
-                int(data.get(CONF_COMPARISON_AGE, DEFAULT_COMPARISON_AGE)),
-                int(data.get(CONF_MIN_REFERENCE_AGE, DEFAULT_MIN_REFERENCE_AGE)),
-                float(data.get(CONF_MIN_DISTANCE_M, DEFAULT_MIN_DISTANCE_M)),
-                float(data.get(CONF_DEFAULT_ACCURACY, DEFAULT_DEFAULT_ACCURACY)),
-                int(data.get(CONF_STATIONARY_TIMEOUT, DEFAULT_STATIONARY_TIMEOUT)),
+                history_window,
+                comparison_age,
+                min_reference_age,
+                min_distance_m,
+                default_accuracy,
+                stationary_timeout,
             )
 
         super().__init__(hass, _LOGGER, config_entry=entry, name=DOMAIN)
@@ -174,7 +192,9 @@ class MovementCoordinator(DataUpdateCoordinator[dict[str, MovementEvaluation]]):
             self.histories[entity_id].add_sample(sample)
 
     @callback
-    def _evaluate_all(self, now: datetime | None = None) -> dict[str, MovementEvaluation]:
+    def _evaluate_all(
+        self, now: datetime | None = None
+    ) -> dict[str, MovementEvaluation]:
         now = now or dt_util.utcnow()
         return {key: value.evaluate(now=now) for key, value in self.histories.items()}
 
