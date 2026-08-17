@@ -63,7 +63,7 @@ When GeoMotion starts it performs one Recorder history query for the configured 
 Each configured source gets its own GeoMotion device. For example:
 
 ```text
-Rico
+<Person>
 └── Moving
 ```
 
