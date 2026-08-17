@@ -26,7 +26,7 @@ from .const import (
 )
 from .coordinator import MovementCoordinator
 
-PLATFORMS = [Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 SETTINGS_DEFAULTS = {
     CONF_HISTORY_WINDOW: DEFAULT_HISTORY_WINDOW,
