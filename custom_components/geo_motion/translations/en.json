@@ -56,6 +56,11 @@
       "moving": {
         "name": "Moving"
       }
+    },
+    "sensor": {
+      "movement_reason": {
+        "name": "Movement reason"
+      }
     }
   }
 }
