@@ -47,3 +47,29 @@ def test_holds_reliable_state_through_reference_gap() -> None:
     result = history.evaluate(now=now + timedelta(seconds=30))
     assert result.is_moving is False
     assert result.reason == "holding_previous_state"
+
+
+def test_holds_stationary_state_when_history_becomes_stale() -> None:
+    history = _history()
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    history.add_sample(GPSSample(now - timedelta(minutes=5), 55.0, 12.0, 5))
+    history.add_sample(GPSSample(now, 55.0, 12.0, 5))
+    assert history.evaluate(now=now).is_moving is False
+
+    later = now + timedelta(minutes=11)
+    result = history.evaluate(now=later)
+    assert result.is_moving is False
+    assert result.reason == "holding_stale_state"
+
+
+def test_holds_moving_state_when_history_becomes_stale() -> None:
+    history = _history()
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    history.add_sample(GPSSample(now - timedelta(minutes=5), 55.0, 12.0, 5))
+    history.add_sample(GPSSample(now, 55.003, 12.0, 5))
+    assert history.evaluate(now=now).is_moving is True
+
+    later = now + timedelta(minutes=11)
+    result = history.evaluate(now=later)
+    assert result.is_moving is True
+    assert result.reason == "holding_stale_state"
