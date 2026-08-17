@@ -12,13 +12,17 @@ It determines whether a tracked entity is moving or stationary by analysing rece
 - Rolling in-memory GPS history
 - Uses an older reference position rather than the immediately previous update
 - GPS-accuracy-aware movement threshold to suppress normal GPS drift
-- Configurable history window, comparison age, minimum reference age, movement threshold, fallback GPS accuracy and stationary hold time
+- One shared set of movement settings for all GeoMotion sensors
 - One-time Home Assistant Recorder history recovery after restart
 - No continuous Recorder queries during normal operation
 - Diagnostic attributes including displacement, GPS accuracy, reference age, sample count and `evaluation_reason`
 - Copies the source entity picture to the GeoMotion binary sensor
 
-## Default settings
+## Shared settings
+
+GeoMotion uses one common set of movement settings for every configured person or device tracker. Open the GeoMotion integration and choose **Configure** to change them.
+
+The default settings are:
 
 - History window: 600 seconds (10 minutes)
 - Preferred comparison age: 300 seconds (5 minutes)
@@ -26,6 +30,8 @@ It determines whether a tracked entity is moving or stationary by analysing rece
 - Minimum movement distance: 20 metres
 - Fallback GPS accuracy: 25 metres
 - Moving-to-stationary hold time: 120 seconds
+
+Changing these settings reloads GeoMotion and applies the new values to all tracked entities.
 
 The effective movement threshold is the larger of the configured minimum distance and the combined uncertainty of the current and reference GPS samples.
 
@@ -55,8 +61,15 @@ When GeoMotion starts it performs one Recorder history query for the configured 
 2. Install **GeoMotion**.
 3. Restart Home Assistant if requested.
 4. Go to **Settings > Devices & services > Add integration** and search for **GeoMotion**.
-5. Choose the first `person` or `device_tracker` and configure its movement settings.
-6. Use **Add service** on the GeoMotion integration to add more tracked entities.
+5. Choose the first `person` or `device_tracker`.
+6. Use **Add tracked person or device** on the GeoMotion integration to add more tracked entities.
+7. Use **Configure** on the main GeoMotion integration to adjust the shared movement settings.
+
+## Upgrading from earlier versions
+
+GeoMotion automatically migrates older per-person movement settings to the new shared settings model. Existing tracked devices and Moving entities are retained.
+
+If older tracked entities had different settings, the first tracked entity's values are used as the initial shared settings. You can then adjust the common settings from **Configure**.
 
 ## Devices and entities
 
